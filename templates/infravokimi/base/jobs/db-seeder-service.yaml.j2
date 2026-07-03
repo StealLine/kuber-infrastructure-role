@@ -1,0 +1,99 @@
+﻿apiVersion: batch/v1
+kind: Job
+metadata:
+  name: db-seeder
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+    argocd.argoproj.io/sync-options: Replace=true,Force=true
+  labels:
+    app: db-seeder
+    tier: jobs
+spec:
+  backoffLimit: 3
+  template:
+    metadata:
+      labels:
+        app: db-seeder
+    spec:
+      restartPolicy: OnFailure
+      imagePullSecrets:
+        - name: gitlab-registry-secret
+      initContainers:
+        - name: wait-postgres
+          image: postgres:16
+          command:
+            - sh
+            - -c
+            - |
+              until pg_isready -h postgres -U $POSTGRES_USER; do
+                echo "Waiting for postgres..."; sleep 2;
+              done
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secrets
+                  key: POSTGRES_USER
+      containers:
+        - name: db-seeder
+          image: "{{ gitlab_container_registry }}/db-seeder:v1.0"
+          imagePullPolicy: Always
+          command: ["dotnet", "DbSeeder.dll", "clear"]
+          env:
+            - name: ConnectionStrings__AuthServiceDb
+              valueFrom:
+                secretKeyRef:
+                  name: auth-service-secrets
+                  key: ConnectionStrings__AuthServiceDb
+            - name: ConnectionStrings__AlbumsServiceDb
+              valueFrom:
+                secretKeyRef:
+                  name: albums-service-secrets
+                  key: ConnectionStrings__AlbumsServiceDb
+            - name: ConnectionStrings__TagsServiceDb
+              valueFrom:
+                secretKeyRef:
+                  name: tags-service-secrets
+                  key: ConnectionStrings__TagsServiceDb
+            - name: ConnectionStrings__UserProfilesServiceDb
+              valueFrom:
+                secretKeyRef:
+                  name: user-profiles-service-secrets
+                  key: ConnectionStrings__UserProfilesServiceDb
+            - name: ConnectionStrings__VokiCommentsServiceDb
+              valueFrom:
+                secretKeyRef:
+                  name: voki-comments-service-secrets
+                  key: ConnectionStrings__VokiCommentsServiceDb
+            - name: ConnectionStrings__VokiRatingsServiceDb
+              valueFrom:
+                secretKeyRef:
+                  name: voki-ratings-service-secrets
+                  key: ConnectionStrings__VokiRatingsServiceDb
+            - name: ConnectionStrings__VokisCatalogServiceDb
+              valueFrom:
+                secretKeyRef:
+                  name: vokis-catalog-service-secrets
+                  key: ConnectionStrings__VokisCatalogServiceDb
+            - name: ConnectionStrings__CoreVokiCreationServiceDb
+              valueFrom:
+                secretKeyRef:
+                  name: core-voki-creation-service-secrets
+                  key: ConnectionStrings__CoreVokiCreationServiceDb
+            - name: ConnectionStrings__GeneralVokiCreationServiceDb
+              valueFrom:
+                secretKeyRef:
+                  name: general-voki-creation-service-secrets
+                  key: ConnectionStrings__GeneralVokiCreationServiceDb
+            - name: ConnectionStrings__GeneralVokiTakingServiceDb
+              valueFrom:
+                secretKeyRef:
+                  name: general-voki-taking-service-secrets
+                  key: ConnectionStrings__GeneralVokiTakingServiceDb
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"

@@ -1,0 +1,45 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: production-environment
+  namespace: argocd
+spec: 
+  generators:
+    - git:
+        repoURL: "{{ infrastructure_git_repository }}"
+        revision: main
+        files:
+          - path: overlays/production/trigger
+
+  template:
+    metadata:
+      name: "production-vokimi"
+    spec:
+      project: vokimi
+      source:
+        repoURL: "{{ infrastructure_git_repository }}"
+        targetRevision: main
+        path: "overlays/production"
+
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: "production-namespace"
+
+      syncPolicy:
+        automated:
+          enabled: true
+          prune: true
+          selfHeal: true
+        retry:
+          limit: 5
+          backoff:
+            duration: 5s
+            factor: 2
+            maxDuration: 2m
+        syncOptions:
+          - ServerSideApply=true
+          - PrunePropagationPolicy=foreground
+          - PruneLast=true
+        managedNamespaceMetadata:
+          labels:
+            istio-injection: enabled

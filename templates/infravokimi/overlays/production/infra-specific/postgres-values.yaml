@@ -1,0 +1,29 @@
+auth:
+  existingSecret: postgres-secrets
+  secretKeys:
+    adminPasswordKey: POSTGRES_PASSWORD
+
+commonAnnotations:
+  argocd.argoproj.io/sync-wave: "0"
+
+fullnameOverride: postgres
+
+primary:
+  persistence:
+    enabled: true
+    size: 2Gi
+
+  resources:
+    requests:
+      memory: 256Mi
+      cpu: 25m
+    limits:
+      memory: 1Gi
+      cpu: 500m
+
+service:
+  type: ClusterIP
+  port: 5432
+
+architecture: standalone
+

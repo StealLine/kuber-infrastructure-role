@@ -1,0 +1,17 @@
+apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata:
+  name: nginx
+  annotations:
+    argocd.argoproj.io/sync-wave: "4"
+spec:
+  hosts:
+    - "{{ website_domain }}"
+  gateways:
+    - istio-ingress/cloudflare-gateway
+  http:
+    - route:
+        - destination:
+            host: nginx
+            port:
+              number: 8080

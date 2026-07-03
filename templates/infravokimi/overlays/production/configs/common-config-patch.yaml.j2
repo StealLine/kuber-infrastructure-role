@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: common-config
+data:
+  ASPNETCORE_ENVIRONMENT: "Production"
+  S3__ServiceURL: "{{ production_s3_service_url }}"
+  S3__MainBucket__Name: "vokimi-storage"
+  FrontendUrl: "https://{{ website_domain }}"
+  FrontendConfig__BaseUrl: "https://{{ website_domain }}"
+  S3__ForcePathStyle: "true" 

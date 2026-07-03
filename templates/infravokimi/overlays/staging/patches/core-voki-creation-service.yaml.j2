@@ -1,0 +1,20 @@
+# Strategic merge patch for core-voki-creation-service in staging
+# Uncomment / adjust as needed
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: core-voki-creation-service
+spec:
+  replicas: 1
+  template:
+    spec:
+      containers:
+        - name: core-voki-creation-service
+          image: "{{ gitlab_container_registry }}/core-voki-creation:main-stable"
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "10m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"

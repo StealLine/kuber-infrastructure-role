@@ -1,0 +1,711 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: backup-auth
+  labels:
+    app: backup-auth
+    tier: backup
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  schedule: "0 2 * * *"   # 02:00 UTC daily
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: backup-auth
+        spec:
+          enableServiceLinks: false
+          restartPolicy: OnFailure
+          containers:
+            - name: backup
+              image: eeshugerman/postgres-backup-s3:16
+              env:
+                - name: SCHEDULE
+                  value: "@daily"
+                - name: BACKUP_KEEP_DAYS
+                  value: "7"
+                - name: S3_ENDPOINT
+                  valueFrom:
+                    configMapKeyRef:
+                      name: common-config
+                      key: S3__ServiceURL
+                - name: S3_ACCESS_KEY_ID
+                  valueFrom:
+                    secretKeyRef:
+                      name: common-secrets
+                      key: S3__AccessKey
+                - name: S3_SECRET_ACCESS_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: common-secrets
+                      key: S3__SecretKey
+                - name: S3_BUCKET
+                  value: "vokimi-pg-backups"
+                - name: S3_PREFIX
+                  value: "auth"
+                - name: POSTGRES_HOST
+                  value: "postgres"
+                - name: POSTGRES_PORT
+                  value: "5432"
+                - name: POSTGRES_DATABASE
+                  value: "vokimi_auth_service_db"
+                - name: POSTGRES_USER
+                  valueFrom:
+                    secretKeyRef:
+                      name: postgres-secrets
+                      key: POSTGRES_USER
+                - name: POSTGRES_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: postgres-secrets
+                      key: POSTGRES_PASSWORD
+              resources:
+                requests:
+                  memory: "64Mi"
+                  cpu: "10m"
+                limits:
+                  memory: "256Mi"
+                  cpu: "100m"
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: backup-tags
+  labels:
+    app: backup-tags
+    tier: backup
+spec:
+  schedule: "0 2 * * *"   # 02:00 UTC daily
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: backup-tags
+        spec:
+          enableServiceLinks: false
+          restartPolicy: OnFailure
+          containers:
+            - name: backup
+              image: eeshugerman/postgres-backup-s3:16
+              env:
+                - name: SCHEDULE
+                  value: "@daily"
+                - name: BACKUP_KEEP_DAYS
+                  value: "7"
+                - name: S3_ENDPOINT
+                  valueFrom:
+                    configMapKeyRef:
+                      name: common-config
+                      key: S3__ServiceURL
+                - name: S3_ACCESS_KEY_ID
+                  valueFrom:
+                    secretKeyRef:
+                      name: common-secrets
+                      key: S3__AccessKey
+                - name: S3_SECRET_ACCESS_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: common-secrets
+                      key: S3__SecretKey
+                - name: S3_BUCKET
+                  value: "vokimi-pg-backups"
+                - name: S3_PREFIX
+                  value: "tags"
+                - name: POSTGRES_HOST
+                  value: "postgres"
+                - name: POSTGRES_PORT
+                  value: "5432"
+                - name: POSTGRES_DATABASE
+                  value: "vokimi_tags_service_db"
+                - name: POSTGRES_USER
+                  valueFrom:
+                    secretKeyRef:
+                      name: postgres-secrets
+                      key: POSTGRES_USER
+                - name: POSTGRES_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: postgres-secrets
+                      key: POSTGRES_PASSWORD
+              resources:
+                requests:
+                  memory: "64Mi"
+                  cpu: "10m"
+                limits:
+                  memory: "256Mi"
+                  cpu: "100m"
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: backup-user-profiles
+  labels:
+    app: backup-user-profiles
+    tier: backup
+spec:
+  schedule: "0 2 * * *"   # 02:00 UTC daily
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: backup-user-profiles
+        spec:
+          enableServiceLinks: false
+          restartPolicy: OnFailure
+          containers:
+            - name: backup
+              image: eeshugerman/postgres-backup-s3:16
+              env:
+                - name: SCHEDULE
+                  value: "@daily"
+                - name: BACKUP_KEEP_DAYS
+                  value: "7"
+                - name: S3_ENDPOINT
+                  valueFrom:
+                    configMapKeyRef:
+                      name: common-config
+                      key: S3__ServiceURL
+                - name: S3_ACCESS_KEY_ID
+                  valueFrom:
+                    secretKeyRef:
+                      name: common-secrets
+                      key: S3__AccessKey
+                - name: S3_SECRET_ACCESS_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: common-secrets
+                      key: S3__SecretKey
+                - name: S3_BUCKET
+                  value: "vokimi-pg-backups"
+                - name: S3_PREFIX
+                  value: "user-profiles"
+                - name: POSTGRES_HOST
+                  value: "postgres"
+                - name: POSTGRES_PORT
+                  value: "5432"
+                - name: POSTGRES_DATABASE
+                  value: "vokimi_user_profiles_service_db"
+                - name: POSTGRES_USER
+                  valueFrom:
+                    secretKeyRef:
+                      name: postgres-secrets
+                      key: POSTGRES_USER
+                - name: POSTGRES_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: postgres-secrets
+                      key: POSTGRES_PASSWORD
+              resources:
+                requests:
+                  memory: "64Mi"
+                  cpu: "10m"
+                limits:
+                  memory: "256Mi"
+                  cpu: "100m"
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: backup-core-voki-creation
+  labels:
+    app: backup-core-voki-creation
+    tier: backup
+spec:
+  schedule: "0 2 * * *"   # 02:00 UTC daily
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: backup-core-voki-creation
+        spec:
+          enableServiceLinks: false
+          restartPolicy: OnFailure
+          containers:
+            - name: backup
+              image: eeshugerman/postgres-backup-s3:16
+              env:
+                - name: SCHEDULE
+                  value: "@daily"
+                - name: BACKUP_KEEP_DAYS
+                  value: "7"
+                - name: S3_ENDPOINT
+                  valueFrom:
+                    configMapKeyRef:
+                      name: common-config
+                      key: S3__ServiceURL
+                - name: S3_ACCESS_KEY_ID
+                  valueFrom:
+                    secretKeyRef:
+                      name: common-secrets
+                      key: S3__AccessKey
+                - name: S3_SECRET_ACCESS_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: common-secrets
+                      key: S3__SecretKey
+                - name: S3_BUCKET
+                  value: "vokimi-pg-backups"
+                - name: S3_PREFIX
+                  value: "core-voki-creation"
+                - name: POSTGRES_HOST
+                  value: "postgres"
+                - name: POSTGRES_PORT
+                  value: "5432"
+                - name: POSTGRES_DATABASE
+                  value: "vokimi_voki_creation_core_service_db"
+                - name: POSTGRES_USER
+                  valueFrom:
+                    secretKeyRef:
+                      name: postgres-secrets
+                      key: POSTGRES_USER
+                - name: POSTGRES_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: postgres-secrets
+                      key: POSTGRES_PASSWORD
+              resources:
+                requests:
+                  memory: "64Mi"
+                  cpu: "10m"
+                limits:
+                  memory: "256Mi"
+                  cpu: "100m"
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: backup-general-voki-creation
+  labels:
+    app: backup-general-voki-creation
+    tier: backup
+spec:
+  schedule: "0 2 * * *"   # 02:00 UTC daily
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: backup-general-voki-creation
+        spec:
+          enableServiceLinks: false
+          restartPolicy: OnFailure
+          containers:
+            - name: backup
+              image: eeshugerman/postgres-backup-s3:16
+              env:
+                - name: SCHEDULE
+                  value: "@daily"
+                - name: BACKUP_KEEP_DAYS
+                  value: "7"
+                - name: S3_ENDPOINT
+                  valueFrom:
+                    configMapKeyRef:
+                      name: common-config
+                      key: S3__ServiceURL
+                - name: S3_ACCESS_KEY_ID
+                  valueFrom:
+                    secretKeyRef:
+                      name: common-secrets
+                      key: S3__AccessKey
+                - name: S3_SECRET_ACCESS_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: common-secrets
+                      key: S3__SecretKey
+                - name: S3_BUCKET
+                  value: "vokimi-pg-backups"
+                - name: S3_PREFIX
+                  value: "general-voki-creation"
+                - name: POSTGRES_HOST
+                  value: "postgres"
+                - name: POSTGRES_PORT
+                  value: "5432"
+                - name: POSTGRES_DATABASE
+                  value: "vokimi_voki_creation_general_service_db"
+                - name: POSTGRES_USER
+                  valueFrom:
+                    secretKeyRef:
+                      name: postgres-secrets
+                      key: POSTGRES_USER
+                - name: POSTGRES_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: postgres-secrets
+                      key: POSTGRES_PASSWORD
+              resources:
+                requests:
+                  memory: "64Mi"
+                  cpu: "10m"
+                limits:
+                  memory: "256Mi"
+                  cpu: "100m"
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: backup-vokis-catalog
+  labels:
+    app: backup-vokis-catalog
+    tier: backup
+spec:
+  schedule: "0 2 * * *"   # 02:00 UTC daily
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: backup-vokis-catalog
+        spec:
+          enableServiceLinks: false
+          restartPolicy: OnFailure
+          containers:
+            - name: backup
+              image: eeshugerman/postgres-backup-s3:16
+              env:
+                - name: SCHEDULE
+                  value: "@daily"
+                - name: BACKUP_KEEP_DAYS
+                  value: "7"
+                - name: S3_ENDPOINT
+                  valueFrom:
+                    configMapKeyRef:
+                      name: common-config
+                      key: S3__ServiceURL
+                - name: S3_ACCESS_KEY_ID
+                  valueFrom:
+                    secretKeyRef:
+                      name: common-secrets
+                      key: S3__AccessKey
+                - name: S3_SECRET_ACCESS_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: common-secrets
+                      key: S3__SecretKey
+                - name: S3_BUCKET
+                  value: "vokimi-pg-backups"
+                - name: S3_PREFIX
+                  value: "vokis-catalog"
+                - name: POSTGRES_HOST
+                  value: "postgres"
+                - name: POSTGRES_PORT
+                  value: "5432"
+                - name: POSTGRES_DATABASE
+                  value: "vokimi_vokis_catalog_service_db"
+                - name: POSTGRES_USER
+                  valueFrom:
+                    secretKeyRef:
+                      name: postgres-secrets
+                      key: POSTGRES_USER
+                - name: POSTGRES_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: postgres-secrets
+                      key: POSTGRES_PASSWORD
+              resources:
+                requests:
+                  memory: "64Mi"
+                  cpu: "10m"
+                limits:
+                  memory: "256Mi"
+                  cpu: "100m"
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: backup-general-voki-taking
+  labels:
+    app: backup-general-voki-taking
+    tier: backup
+spec:
+  schedule: "0 2 * * *"   # 02:00 UTC daily
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: backup-general-voki-taking
+        spec:
+          enableServiceLinks: false
+          restartPolicy: OnFailure
+          containers:
+            - name: backup
+              image: eeshugerman/postgres-backup-s3:16
+              env:
+                - name: SCHEDULE
+                  value: "@daily"
+                - name: BACKUP_KEEP_DAYS
+                  value: "7"
+                - name: S3_ENDPOINT
+                  valueFrom:
+                    configMapKeyRef:
+                      name: common-config
+                      key: S3__ServiceURL
+                - name: S3_ACCESS_KEY_ID
+                  valueFrom:
+                    secretKeyRef:
+                      name: common-secrets
+                      key: S3__AccessKey
+                - name: S3_SECRET_ACCESS_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: common-secrets
+                      key: S3__SecretKey
+                - name: S3_BUCKET
+                  value: "vokimi-pg-backups"
+                - name: S3_PREFIX
+                  value: "general-voki-taking"
+                - name: POSTGRES_HOST
+                  value: "postgres"
+                - name: POSTGRES_PORT
+                  value: "5432"
+                - name: POSTGRES_DATABASE
+                  value: "vokimi_voki_taking_general_service_db"
+                - name: POSTGRES_USER
+                  valueFrom:
+                    secretKeyRef:
+                      name: postgres-secrets
+                      key: POSTGRES_USER
+                - name: POSTGRES_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: postgres-secrets
+                      key: POSTGRES_PASSWORD
+              resources:
+                requests:
+                  memory: "64Mi"
+                  cpu: "10m"
+                limits:
+                  memory: "256Mi"
+                  cpu: "100m"
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: backup-voki-ratings
+  labels:
+    app: backup-voki-ratings
+    tier: backup
+spec:
+  schedule: "0 2 * * *"   # 02:00 UTC daily
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: backup-voki-ratings
+        spec:
+          enableServiceLinks: false
+          restartPolicy: OnFailure
+          containers:
+            - name: backup
+              image: eeshugerman/postgres-backup-s3:16
+              env:
+                - name: SCHEDULE
+                  value: "@daily"
+                - name: BACKUP_KEEP_DAYS
+                  value: "7"
+                - name: S3_ENDPOINT
+                  valueFrom:
+                    configMapKeyRef:
+                      name: common-config
+                      key: S3__ServiceURL
+                - name: S3_ACCESS_KEY_ID
+                  valueFrom:
+                    secretKeyRef:
+                      name: common-secrets
+                      key: S3__AccessKey
+                - name: S3_SECRET_ACCESS_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: common-secrets
+                      key: S3__SecretKey
+                - name: S3_BUCKET
+                  value: "vokimi-pg-backups"
+                - name: S3_PREFIX
+                  value: "voki-ratings"
+                - name: POSTGRES_HOST
+                  value: "postgres"
+                - name: POSTGRES_PORT
+                  value: "5432"
+                - name: POSTGRES_DATABASE
+                  value: "vokimi_voki_ratings_service_db"
+                - name: POSTGRES_USER
+                  valueFrom:
+                    secretKeyRef:
+                      name: postgres-secrets
+                      key: POSTGRES_USER
+                - name: POSTGRES_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: postgres-secrets
+                      key: POSTGRES_PASSWORD
+              resources:
+                requests:
+                  memory: "64Mi"
+                  cpu: "10m"
+                limits:
+                  memory: "256Mi"
+                  cpu: "100m"
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: backup-voki-comments
+  labels:
+    app: backup-voki-comments
+    tier: backup
+spec:
+  schedule: "0 2 * * *"   # 02:00 UTC daily
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: backup-voki-comments
+        spec:
+          enableServiceLinks: false
+          restartPolicy: OnFailure
+          containers:
+            - name: backup
+              image: eeshugerman/postgres-backup-s3:16
+              env:
+                - name: SCHEDULE
+                  value: "@daily"
+                - name: BACKUP_KEEP_DAYS
+                  value: "7"
+                - name: S3_ENDPOINT
+                  valueFrom:
+                    configMapKeyRef:
+                      name: common-config
+                      key: S3__ServiceURL
+                - name: S3_ACCESS_KEY_ID
+                  valueFrom:
+                    secretKeyRef:
+                      name: common-secrets
+                      key: S3__AccessKey
+                - name: S3_SECRET_ACCESS_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: common-secrets
+                      key: S3__SecretKey
+                - name: S3_BUCKET
+                  value: "vokimi-pg-backups"
+                - name: S3_PREFIX
+                  value: "voki-comments"
+                - name: POSTGRES_HOST
+                  value: "postgres"
+                - name: POSTGRES_PORT
+                  value: "5432"
+                - name: POSTGRES_DATABASE
+                  value: "vokimi_voki_comments_service_db"
+                - name: POSTGRES_USER
+                  valueFrom:
+                    secretKeyRef:
+                      name: postgres-secrets
+                      key: POSTGRES_USER
+                - name: POSTGRES_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: postgres-secrets
+                      key: POSTGRES_PASSWORD
+              resources:
+                requests:
+                  memory: "64Mi"
+                  cpu: "10m"
+                limits:
+                  memory: "256Mi"
+                  cpu: "100m"
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: backup-albums
+  labels:
+    app: backup-albums
+    tier: backup
+spec:
+  schedule: "0 2 * * *"   # 02:00 UTC daily
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: backup-albums
+        spec:
+          enableServiceLinks: false
+          restartPolicy: OnFailure
+          containers:
+            - name: backup
+              image: eeshugerman/postgres-backup-s3:16
+              env:
+                - name: SCHEDULE
+                  value: "@daily"
+                - name: BACKUP_KEEP_DAYS
+                  value: "7"
+                - name: S3_ENDPOINT
+                  valueFrom:
+                    configMapKeyRef:
+                      name: common-config
+                      key: S3__ServiceURL
+                - name: S3_ACCESS_KEY_ID
+                  valueFrom:
+                    secretKeyRef:
+                      name: common-secrets
+                      key: S3__AccessKey
+                - name: S3_SECRET_ACCESS_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: common-secrets
+                      key: S3__SecretKey
+                - name: S3_BUCKET
+                  value: "vokimi-pg-backups"
+                - name: S3_PREFIX
+                  value: "albums"
+                - name: POSTGRES_HOST
+                  value: "postgres"
+                - name: POSTGRES_PORT
+                  value: "5432"
+                - name: POSTGRES_DATABASE
+                  value: "vokimi_albums_service_db"
+                - name: POSTGRES_USER
+                  valueFrom:
+                    secretKeyRef:
+                      name: postgres-secrets
+                      key: POSTGRES_USER
+                - name: POSTGRES_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: postgres-secrets
+                      key: POSTGRES_PASSWORD
+              resources:
+                requests:
+                  memory: "64Mi"
+                  cpu: "10m"
+                limits:
+                  memory: "256Mi"
+                  cpu: "100m"

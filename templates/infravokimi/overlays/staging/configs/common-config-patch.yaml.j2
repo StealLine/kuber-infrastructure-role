@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: common-config
+data:
+  ASPNETCORE_ENVIRONMENT: "Staging"
+  S3__ServiceURL: "http://minio:9000"
+  S3__ForcePathStyle: "true"
+  FrontendUrl: "https://staging.{{ website_domain }}"
+  FrontendConfig__BaseUrl: "https://staging.{{ website_domain }}"

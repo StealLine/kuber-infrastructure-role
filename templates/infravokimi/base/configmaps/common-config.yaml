@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: common-config
+  annotations:
+    argocd.argoproj.io/sync-wave: "-5"
+data:
+  MessageBroker__Host: "rabbitmq"
+  MessageBroker__RetryCount: "3"
+  MessageBroker__RetryIntervalSeconds: "5"
+  JwtTokenConfig__Issuer: "vokimi_auth_service"
+  JwtTokenConfig__UserIdClaimKey: "user_id_claim"
+  JwtTokenConfig__Audience: "vokimi_frontend_app"
+  S3__MainBucket__Name: "vokimi-storage"
+  FrontendConfig__ConfirmRegistrationPath: "confirm-registration"
+  FfmpegPath: "/usr/bin"
+  # Overridden per-overlay:
+  ASPNETCORE_ENVIRONMENT: "Production"
+  FrontendUrl: "https://change-me.example.com"
+  FrontendConfig__BaseUrl: "https://change-me.example.com"
+  S3__ServiceURL: "https://s3.change-me.example.com"

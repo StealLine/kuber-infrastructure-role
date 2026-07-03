@@ -1,0 +1,73 @@
+stages:
+  - prepare-and-commit-preview-overlay
+  - delete-preview-overlay
+  - deploy-production-overlay
+  
+prepare_and_commit_preview:
+    image: alpine:3.23.3
+    stage: prepare-and-commit-preview-overlay
+    variables:
+        MINIO_BROWSER_REDIRECT_URL: "https://mr-$MR_NUMBER-minio.{{ website_domain }}"
+    before_script:
+        - apk add --no-cache bash gettext git
+        - git config --global user.email "gitlab-ci@{{ website_domain }}"
+        - git config --global user.name "GitLab CI"
+    script:
+        - mkdir -p overlays/mr-$MR_NUMBER
+        - cp -r overlays/staging/* overlays/mr-$MR_NUMBER/
+        - "envsubst '${SERVICE} ${TAG} ${MR_NUMBER} ${CONTAINER_REGISTRY}' < templates/example-config.yaml > overlays/mr-$MR_NUMBER/config.yaml"
+        - sed 's/\r//' templates/env-generator-app-template.sh | bash
+        - "git remote set-url origin https://oauth2:${PUSH_TOKEN}@${CI_SERVER_HOST}/${CI_PROJECT_PATH}.git"
+        - git add overlays/mr-$MR_NUMBER/
+        - 'git commit -m "[PREVIEW] add overlay for MR-$MR_NUMBER [ci skip]"'
+        - git push origin HEAD:$CI_COMMIT_REF_NAME 
+    
+    rules:
+      - if: "$ACTION == 'deploy' && $ENVIRONMENT == 'staging'"
+        when: always
+      - when: never
+
+delete_preview:
+    image: alpine:3.23.3
+    stage: delete-preview-overlay
+    before_script:
+        - apk add --no-cache git
+        - git config --global user.email "gitlab-ci@{{ website_domain }}"
+        - git config --global user.name "GitLab CI"
+    script:
+        - "git remote set-url origin https://oauth2:${PUSH_TOKEN}@${CI_SERVER_HOST}/${CI_PROJECT_PATH}.git"
+        - git pull origin $CI_COMMIT_REF_NAME
+        - git rm -rf overlays/mr-$MR_NUMBER/
+        - 'git commit -m "[PREVIEW] delete overlay for MR-$MR_NUMBER [ci skip]"'
+        - git push origin HEAD:$CI_COMMIT_REF_NAME
+    rules:
+        - if: "$ACTION == 'delete' && $ENVIRONMENT == 'staging'"
+          when: always
+        - when: never
+
+update-production:
+    stage: deploy-production-overlay
+    image: python:3.11-slim
+    before_script:
+        - pip install --quiet --no-cache-dir ruamel.yaml
+        - apt-get update -qq && apt-get install -y --no-install-recommends gettext-base git
+        - git config --global user.email "gitlab-ci@{{ website_domain }}"
+        - git config --global user.name "GitLab CI"
+    script:
+        - python update_tag.py --service "$SERVICE-service" --tag "$TAG"
+        - |
+            git remote set-url origin \
+                "https://oauth2:${PUSH_TOKEN}@${CI_SERVER_HOST}/${CI_PROJECT_PATH}.git"
+            git add base/backend
+            git add base/frontend
+            git add base/jobs
+            if git diff --cached --quiet; then
+                echo "No manifest changes to commit."
+            else
+                git commit -m "[PRODUCTION] update tag to ${TAG} in ${SERVICE}  [skip ci]"
+                git push origin "HEAD:${CI_COMMIT_REF_NAME}"
+            fi
+    rules:
+        - if: "$ACTION == 'update' && $ENVIRONMENT == 'production'"
+          when: always
+        - when: never

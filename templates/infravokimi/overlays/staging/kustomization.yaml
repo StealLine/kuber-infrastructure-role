@@ -1,0 +1,188 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+
+resources:
+  - infra-specific
+  - ../../base/backend
+  - ../../base/frontend
+  - ../../base/jobs
+  - ../../base/configmaps
+  - ../../base/infrastructure
+
+helmGlobals:
+  chartHome: ../../base/infrastructure
+
+helmCharts:
+  - name: postgresql
+    releaseName: staging-postgres
+    valuesFile: infra-specific/postgres-values.yaml
+
+patches:
+
+  - path: patches/auth-service.yaml
+    target:
+      kind: Deployment
+      name: auth-service
+  - path: patches/albums-service.yaml
+    target:
+      kind: Deployment
+      name: albums-service
+  - path: patches/tags-service.yaml
+    target:
+      kind: Deployment
+      name: tags-service
+  - path: patches/user-profiles-service.yaml
+    target:
+      kind: Deployment
+      name: user-profiles-service
+  - path: patches/voki-comments-service.yaml
+    target:
+      kind: Deployment
+      name: voki-comments-service
+  - path: patches/voki-ratings-service.yaml
+    target:
+      kind: Deployment
+      name: voki-ratings-service
+  - path: patches/vokis-catalog-service.yaml
+    target:
+      kind: Deployment
+      name: vokis-catalog-service
+  - path: patches/core-voki-creation-service.yaml
+    target:
+      kind: Deployment
+      name: core-voki-creation-service
+  - path: patches/general-voki-creation-service.yaml
+    target:
+      kind: Deployment
+      name: general-voki-creation-service
+  - path: patches/general-voki-taking-service.yaml
+    target:
+      kind: Deployment
+      name: general-voki-taking-service
+  - path: patches/vokimi-storage-service.yaml
+    target:
+      kind: Deployment
+      name: vokimi-storage-service
+  - path: patches/frontend.yaml
+    target:
+      kind: Deployment
+      name: frontend
+  - path: patches/nginx.yaml
+    target:
+      kind: Deployment
+      name: nginx
+
+  - path: patches/rabbitmq.yaml
+    target:
+      kind: StatefulSet
+      name: rabbitmq
+  - path: patches/pvc-rabbitmq.yaml
+    target:
+      kind: PersistentVolumeClaim
+      name: rabbitmq-data
+
+  - path: configs/common-config-patch.yaml
+    target:
+      kind: ConfigMap
+      name: common-config
+
+generatorOptions:
+  annotations:
+    argocd.argoproj.io/sync-wave: "-5"
+    
+secretGenerator:
+  - name: gitlab-registry-secret
+    type: kubernetes.io/dockerconfigjson
+    options:
+      disableNameSuffixHash: true
+    files:
+      - .dockerconfigjson=secrets/gitlab-registry.dockerconfigjson
+
+  - name: postgres-secrets
+    options:
+      disableNameSuffixHash: true
+    envs:
+      - secrets/postgres.env
+
+  - name: common-secrets
+    options:
+      disableNameSuffixHash: true
+    envs:
+      - secrets/common.env
+    files:
+      - JwtTokenConfig__PublicKey=secrets/jwt-public.pem
+
+  - name: minio-secrets
+    options:
+      disableNameSuffixHash: true
+    envs:
+      - secrets/minio.env
+
+  - name: auth-extra-secrets
+    options:
+      disableNameSuffixHash: true
+    envs:
+      - secrets/auth-extra.env
+    files:
+      - AuthPrivateKey__PrivateKey=secrets/jwt-private.pem
+
+  - name: auth-service-secrets
+    options:
+      disableNameSuffixHash: true
+    envs:
+      - secrets/auth-service.env
+
+  - name: albums-service-secrets
+    options:
+      disableNameSuffixHash: true
+    envs:
+      - secrets/albums-service.env
+
+  - name: tags-service-secrets
+    options:
+      disableNameSuffixHash: true
+    envs:
+      - secrets/tags-service.env
+
+  - name: user-profiles-service-secrets
+    options:
+      disableNameSuffixHash: true
+    envs:
+      - secrets/user-profiles-service.env
+
+  - name: voki-comments-service-secrets
+    options:
+      disableNameSuffixHash: true
+    envs:
+      - secrets/voki-comments-service.env
+
+  - name: voki-ratings-service-secrets
+    options:
+      disableNameSuffixHash: true
+    envs:
+      - secrets/voki-ratings-service.env
+
+  - name: vokis-catalog-service-secrets
+    options:
+      disableNameSuffixHash: true
+    envs:
+      - secrets/vokis-catalog-service.env
+
+  - name: core-voki-creation-service-secrets
+    options:
+      disableNameSuffixHash: true
+    envs:
+      - secrets/core-voki-creation-service.env
+
+  - name: general-voki-creation-service-secrets
+    options:
+      disableNameSuffixHash: true
+    envs:
+      - secrets/general-voki-creation-service.env
+
+  - name: general-voki-taking-service-secrets
+    options:
+      disableNameSuffixHash: true
+    envs:
+      - secrets/general-voki-taking-service.env

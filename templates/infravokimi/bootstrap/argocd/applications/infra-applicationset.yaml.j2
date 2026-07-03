@@ -1,0 +1,100 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: infrastructure-appset
+  namespace: argocd
+spec:
+  generators:
+    - git:
+        repoURL: "{{ infrastructure_git_repository }}"
+        revision: main
+        files:
+          - path: infrastructure/global-infra-configs/argocd-control-apps/*.yaml
+      
+      selector:                        
+        matchExpressions:
+          - key: enabled
+            operator: In
+            values: ["true"]
+
+  strategy:
+    type: RollingSync
+    deletionOrder: Reverse
+    rollingSync:
+      steps:
+        - matchExpressions:
+            - key: stage
+              operator: In
+              values:
+                - wave0
+
+        - matchExpressions:
+            - key: stage
+              operator: In
+              values:
+                - wave1
+
+        - matchExpressions:
+            - key: stage
+              operator: In
+              values:
+                - wave2
+
+        - matchExpressions:
+            - key: stage
+              operator: In
+              values:
+                - wave3
+
+        - matchExpressions:
+            - key: stage
+              operator: In
+              values:
+                - wave4
+
+  template:
+    metadata:
+      name: {% raw %}'{{name}}'{% endraw %}
+
+      labels:
+        stage: {% raw %}'wave{{wave}}'{% endraw %}
+
+    spec:
+      project: infrastructure
+
+      source:
+        repoURL: "{{ infrastructure_git_repository }}"
+        targetRevision: main
+        path: {% raw %}infrastructure/global-infra-configs/{{name}}{% endraw %}
+
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: default
+      ignoreDifferences:
+        - group: admissionregistration.k8s.io
+          kind: ValidatingWebhookConfiguration
+          jsonPointers:
+            - /webhooks
+        - group: admissionregistration.k8s.io
+          kind: MutatingWebhookConfiguration
+          jsonPointers:
+            - /webhooks
+        
+      syncPolicy:
+            automated:
+              enabled: true
+              prune: true
+              selfHeal: true
+            retry:
+              limit: 5
+              backoff:
+                duration: 5s
+                factor: 2
+                maxDuration: 3m
+            syncOptions:
+              - ServerSideApply=true
+              - PrunePropagationPolicy=foreground
+              - PruneLast=true
+    #        managedNamespaceMetadata:
+    #          labels:
+    #            istio-injection: enabled

@@ -1,0 +1,16 @@
+apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata:
+  name: prometheus
+  namespace: istio-ingress
+spec:
+  hosts:
+    - prometheus.{{ website_domain }}
+  gateways:
+    - cloudflare-gateway
+  http:
+    - route:
+        - destination:
+            host: kube-prometheus-stack-prometheus.monitoring.svc.cluster.local
+            port:
+              number: 9090

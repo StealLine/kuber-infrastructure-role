@@ -1,0 +1,15 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - albums-service.yaml
+  - auth-service.yaml
+  - core-voki-creation-service.yaml
+  - general-voki-creation-service.yaml
+  - general-voki-taking-service.yaml
+  - tags-service.yaml
+  - user-profiles-service.yaml
+  - voki-comments-service.yaml
+  - voki-ratings-service.yaml
+  - voki-storage-service.yaml
+  - vokis-catalog-service.yaml

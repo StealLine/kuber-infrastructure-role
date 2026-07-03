@@ -1,0 +1,20 @@
+# Strategic merge patch for vokimi-storage-service in staging
+# Uncomment / adjust as needed
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vokimi-storage-service
+spec:
+  replicas: 1
+  template:
+    spec:
+      containers:
+        - name: vokimi-storage-service
+          image: "{{ gitlab_container_registry }}/storage:main-stable"
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "10m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"

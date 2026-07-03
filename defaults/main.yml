@@ -1,0 +1,14 @@
+#SPDX-License-Identifier: MIT-0
+infravokimi_output_dir: /tmp/infravokimi
+gitlab_container_registry: registry.gitlab.com/kubervokimi/vokiappcode
+website_domain: example.com
+infrastructure_git_repository: https://gitlab.com/kubervokimi/infravokimi.git
+gitlab_username: your-gitlab-username
+gitlab_token_for_argocd: your-argocd-repo-token
+gitlab_token_for_imagepullkuber: your-registry-read-token
+gitlab_b64_auth: your-base64-username-token
+production_s3_service_url: https://storage.yandexcloud.net
+s3_prod_access_key: your-s3-access-key
+s3_prod_secret_key: your-s3-secret-key
+resend_token: your-resend-token
+grafana_admin_password: your-grafana-password

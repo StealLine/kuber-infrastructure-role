@@ -1,0 +1,18 @@
+# Strategic merge patch for general-voki-creation-service in production
+# Uncomment / adjust as needed
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: general-voki-creation-service
+spec:
+  template:
+    spec:
+      containers:
+        - name: general-voki-creation-service
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "25m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"

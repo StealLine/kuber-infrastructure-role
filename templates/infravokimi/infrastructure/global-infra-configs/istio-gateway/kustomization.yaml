@@ -1,0 +1,26 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - istio-gateway-ns.yaml
+  - cloudflare-gateway.yaml
+  - infra-virtualservices/
+
+helmGlobals:
+  chartHome: ../../charts
+
+helmCharts:
+  - name: istio-gateway
+    releaseName: istio-gateway
+    valuesFile: gateway-values.yaml
+    namespace: istio-system
+
+secretGenerator:
+  - name: cloudflare-cert
+    namespace: istio-system
+    type: kubernetes.io/tls
+    options:
+      disableNameSuffixHash: true
+    files:
+      - tls.crt=cloudflare-envs/tls.crt
+      - tls.key=cloudflare-envs/tls.key

@@ -1,0 +1,18 @@
+# Strategic merge patch for voki-ratings-service in production
+# Uncomment / adjust as needed
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: voki-ratings-service
+spec:
+  template:
+    spec:
+      containers:
+        - name: voki-ratings-service
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "25m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"

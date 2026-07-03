@@ -1,0 +1,51 @@
+global:
+  domain: argocd.{{ website_domain }}
+
+configs:
+  cm:
+    kustomize.buildOptions: "--enable-helm"
+  params:
+    server.insecure: true
+    applicationsetcontroller.enable.progressive.syncs: "true" 
+
+controller:
+  resources:
+    requests:
+      cpu: 50m
+    limits:
+      cpu: 300m
+
+repoServer:
+  resources:
+    requests:
+      cpu: 50m
+    limits:
+      cpu: 200m
+
+server:
+  resources:
+    requests:
+      cpu: 25m
+    limits:
+      cpu: 100m
+
+applicationSet:
+  resources:
+    requests:
+      cpu: 25m
+    limits:
+      cpu: 100m
+
+dex:
+  resources:
+    requests:
+      cpu: 10m
+    limits:
+      cpu: 50m
+
+redis:
+  resources:
+    requests:
+      cpu: 25m
+    limits:
+      cpu: 100m

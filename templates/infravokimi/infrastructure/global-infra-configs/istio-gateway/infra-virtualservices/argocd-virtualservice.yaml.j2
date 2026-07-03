@@ -1,0 +1,16 @@
+apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata:
+  name: argocd
+  namespace: istio-ingress
+spec:
+  hosts:
+    - "argocd.{{ website_domain }}"
+  gateways:
+    - cloudflare-gateway
+  http:
+    - route:
+        - destination:
+            host: argocd-server.argocd.svc.cluster.local
+            port:
+              number: 80

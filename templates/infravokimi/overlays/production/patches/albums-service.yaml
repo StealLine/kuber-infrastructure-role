@@ -1,0 +1,18 @@
+# Strategic merge patch for albums-service in production
+# Uncomment / adjust as needed
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: albums-service
+spec:
+  template:
+    spec:
+      containers:
+        - name: albums-service
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "25m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"

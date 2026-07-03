@@ -1,0 +1,4 @@
+servicename: ${SERVICE}
+imageTag: ${TAG}
+number: ${MR_NUMBER}
+registry: ${CONTAINER_REGISTRY}

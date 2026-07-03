@@ -1,0 +1,16 @@
+apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata:
+  name: kiali
+  namespace: istio-ingress
+spec:
+  hosts:
+    - kiali.{{ website_domain }}
+  gateways:
+    - cloudflare-gateway
+  http:
+    - route:
+        - destination:
+            host: kiali.kiali-operator.svc.cluster.local
+            port:
+              number: 20001

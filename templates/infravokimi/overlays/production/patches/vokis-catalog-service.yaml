@@ -1,0 +1,18 @@
+# Strategic merge patch for vokis-catalog-service in production
+# Uncomment / adjust as needed
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vokis-catalog-service
+spec:
+  template:
+    spec:
+      containers:
+        - name: vokis-catalog-service
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "25m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"

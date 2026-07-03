@@ -1,0 +1,92 @@
+namespaceOverride: monitoring
+
+alertmanager:
+  enabled: false
+
+kubeEtcd:
+  enabled: false
+
+kubeControllerManager:
+  enabled: false
+
+kubeScheduler:
+  enabled: false
+
+
+prometheus:
+  additionalPodMonitors:
+    - name: istio-envoy-sidecars
+      namespaceSelector:
+        any: true
+      selector:
+        matchExpressions:
+          - key: security.istio.io/tlsMode
+            operator: In
+            values:
+              - istio
+      podMetricsEndpoints:
+        - port: http-envoy-prom
+          path: /stats/prometheus
+          interval: 15s
+    - name: istio-envoy-gateway
+      namespaceSelector:
+        matchNames:
+          - istio-system
+      selector:
+        matchLabels:
+          istio: gateway
+      podMetricsEndpoints:
+        - port: http-envoy-prom
+          path: /stats/prometheus
+          interval: 15s
+
+  prometheusSpec:
+    retention: 3d
+    resources:
+      requests:
+        cpu: 80m
+        memory: 512Mi
+      limits:
+        cpu: 1
+        memory: 2Gi
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: default
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 10Gi
+
+grafana:
+  adminPassword: {{ grafana_admin_password }}
+  resources:
+    requests:
+      cpu: 80m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 1Gi
+  persistence:
+    enabled: true
+    storageClassName: default
+    accessModes: ["ReadWriteOnce"]
+    size: 10Gi
+
+kube-state-metrics:
+  resources:
+    requests:
+      cpu: 10m
+      memory: 64Mi
+    limits:
+      cpu: 100m
+      memory: 128Mi
+
+prometheus-node-exporter:
+  resources:
+    requests:
+      cpu: 10m
+      memory: 32Mi
+    limits:
+      cpu: 100m
+      memory: 64Mi

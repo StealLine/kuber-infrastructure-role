@@ -1,0 +1,32 @@
+#SPDX-License-Identifier: MIT-0
+---
+- name: Create infravokimi output directory
+  ansible.builtin.file:
+    path: "{{ infravokimi_output_dir }}"
+    state: directory
+    mode: "0755"
+
+- name: Sync all static files at once
+  ansible.posix.synchronize:
+    src: "{{ role_path }}/templates/infravokimi/"
+    dest: "{{ infravokimi_output_dir }}/"
+    recursive: true
+    rsync_opts:
+      - "--exclude=*.j2"
+
+- name: Discover j2 templates only
+  ansible.builtin.find:
+    paths: "{{ role_path }}/templates/infravokimi"
+    patterns: "*.j2"
+    recurse: true
+    hidden: true
+  register: infravokimi_j2_files
+
+- name: Render Jinja2 templates
+  ansible.builtin.template:
+    src: "{{ item.path }}"
+    dest: "{{ infravokimi_output_dir }}/{{ (item.path | regex_replace('^' ~ (role_path ~ '/templates/infravokimi/') | regex_escape, '')) | regex_replace('\\.j2$', '') }}"
+    mode: "0644"
+  loop: "{{ infravokimi_j2_files.files }}"
+  loop_control:
+    label: "{{ item.path | basename | regex_replace('\\.j2$', '') }}"

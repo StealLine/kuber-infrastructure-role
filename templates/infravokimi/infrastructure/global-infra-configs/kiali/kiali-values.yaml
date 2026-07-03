@@ -1,0 +1,23 @@
+metrics:
+  enabled: false
+
+debug:
+  enabled: false
+
+cr:
+  create: true
+  name: kiali
+  namespace: "kiali-operator"
+  annotations: {}
+  spec:
+    auth:
+      strategy: anonymous
+    deployment:
+      cluster_wide_access: true
+    api:
+      namespaces:
+        include:
+          - ".*"
+    external_services:          
+      prometheus:
+        url: "http://kube-prometheus-stack-prometheus.monitoring.svc.cluster.local:9090"

@@ -1,0 +1,20 @@
+# Strategic merge patch for auth-service in staging
+# Uncomment / adjust as needed
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-service
+spec:
+  replicas: 1
+  template:
+    spec:
+      containers:
+        - name: auth-service
+          image: "{{ gitlab_container_registry }}/auth:main-stable"
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "10m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"

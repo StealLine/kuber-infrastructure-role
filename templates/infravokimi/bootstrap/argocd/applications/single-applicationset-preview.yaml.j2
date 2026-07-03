@@ -1,0 +1,78 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: preview-environments
+  namespace: argocd
+spec:
+  generators:
+    - git:
+        repoURL: "{{ infrastructure_git_repository }}"
+        revision: main
+        files:
+          - path: overlays/mr-*/config.yaml
+
+  template:
+    metadata:
+      name: "preview-{{ '{{number}}' }}"
+    spec:
+      project: vokimi
+      source:
+        repoURL: "{{ infrastructure_git_repository }}"
+        targetRevision: main
+        path: "overlays/mr-{{ '{{number}}' }}"
+        kustomize:
+          images:
+            - "{{ '{{registry}}' }}/{{ '{{servicename}}' }}:{{ '{{imageTag}}' }}"
+          namespace: "staging-{{ '{{number}}' }}"
+          patches:
+            - target:
+                kind: VirtualService
+                name: nginx
+              patch: |-
+                - op: replace
+                  path: /spec/hosts/0
+                  value: mr-{{ '{{number}}' }}.{{ website_domain }}
+            - target:
+                kind: VirtualService
+                name: minio-console
+              patch: |-
+                - op: replace
+                  path: /spec/hosts/0
+                  value: mr-{{ '{{number}}' }}-minio.{{ website_domain }}
+            - target:
+                kind: ConfigMap
+                name: common-config
+              patch: |-
+                - op: replace
+                  path: /data/FrontendUrl
+                  value: https://mr-{{ '{{number}}' }}.{{ website_domain }}
+            - target:
+                kind: ConfigMap
+                name: common-config
+              patch: |-
+                - op: replace
+                  path: /data/FrontendConfig__BaseUrl
+                  value: https://mr-{{ '{{number}}' }}.{{ website_domain }}
+
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: "staging-{{ '{{number}}' }}"
+
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        retry:
+          limit: 5
+          backoff:
+            duration: 5s
+            factor: 2
+            maxDuration: 2m
+        syncOptions:
+          - CreateNamespace=true
+          - ServerSideApply=true
+          - PrunePropagationPolicy=foreground
+          - PruneLast=true
+        managedNamespaceMetadata:
+          labels:
+            istio-injection: enabled
