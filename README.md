@@ -38,7 +38,7 @@ variables with environment-specific values.
 - hosts: localhost
   gather_facts: false
   roles:
-    - role: kuber-infrastructure-role
+    - role: StealLine.kuber-infrastructure-role
       vars:
         infravokimi_output_dir: /tmp/infravokimi
         gitlab_container_registry: registry.gitlab.com/kubervokimi/vokiappcode
