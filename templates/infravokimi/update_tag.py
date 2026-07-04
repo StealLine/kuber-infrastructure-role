@@ -271,7 +271,7 @@ def main() -> None:
     parser = build_arg_parser()
     args = parser.parse_args()
 
-    if args.service == "all":
+    if args.service == "all-service":
         run_all_services(args.tag)
     else:
         run_single_service(args.service, args.tag)

@@ -36,7 +36,7 @@ spec:
                 name: common-secrets
       containers:
         - name: vokimi-storage-service
-          image: "{{ gitlab_container_registry }}/storage:v1.0"
+          image: "{{ gitlab_container_registry }}/voki-storage:v1.0"
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
